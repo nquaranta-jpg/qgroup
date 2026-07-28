@@ -716,6 +716,17 @@
       .submit-btn:hover {
         background: var(--platinum);
       }
+      .submit-btn:disabled {
+        opacity: 0.6;
+        cursor: default;
+      }
+      .form-success {
+        font-size: 0.95rem;
+        line-height: 1.9;
+        color: var(--silver-light);
+        text-align: center;
+        padding: 2rem 0;
+      }
 
       /* Footer */
       footer {
@@ -1161,21 +1172,42 @@
         </div>
         <div class="contact-form reveal">
           <h3 class="form-title">SEND A MESSAGE</h3>
-          <form>
+          <form
+            name="contact"
+            method="POST"
+            action="/"
+            data-netlify="true"
+            netlify-honeypot="bot-field"
+          >
+            <input type="hidden" name="form-name" value="contact" />
+            <p style="display: none">
+              <label>Leave this field empty: <input name="bot-field" /></label>
+            </p>
             <div class="form-group">
-              <input type="text" placeholder="Your Name" required />
+              <input type="text" name="name" placeholder="Your Name" required />
             </div>
             <div class="form-group">
-              <input type="text" placeholder="Business Name" required />
+              <input
+                type="text"
+                name="business"
+                placeholder="Business Name"
+                required
+              />
             </div>
             <div class="form-group">
-              <input type="email" placeholder="Business Email" required />
+              <input
+                type="email"
+                name="email"
+                placeholder="Business Email"
+                required
+              />
             </div>
             <div class="form-group">
-              <input type="tel" placeholder="Phone Number" />
+              <input type="tel" name="phone" placeholder="Phone Number" />
             </div>
             <div class="form-group">
               <textarea
+                name="message"
                 placeholder="What is your business working toward?"
               ></textarea>
             </div>
@@ -1279,14 +1311,29 @@
             target.scrollIntoView({ behavior: "smooth", block: "start" });
         });
       });
-      document
-        .querySelector(".contact-form form")
-        .addEventListener("submit", (e) => {
-          e.preventDefault();
+      const contactForm = document.querySelector(".contact-form form");
+      contactForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const btn = contactForm.querySelector(".submit-btn");
+        btn.disabled = true;
+        btn.textContent = "Sending…";
+        try {
+          const res = await fetch("/", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams(new FormData(contactForm)).toString(),
+          });
+          if (!res.ok) throw new Error("submit failed: " + res.status);
+          contactForm.innerHTML =
+            '<p class="form-success">Thank you — your message is on its way. We\'ll be in touch within one business day.</p>';
+        } catch (err) {
+          btn.disabled = false;
+          btn.textContent = "Send Message";
           alert(
-            "Thank you for your message! Our team will be in touch shortly."
+            "Something went wrong sending your message. Please email nquaranta@qgroupbrokers.com directly."
           );
-        });
+        }
+      });
     </script>
   </body>
 </html>
